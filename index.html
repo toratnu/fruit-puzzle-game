@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>フルーツパズルゲーム</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #2c3e50;
+            --bg-mid: #34495e;
+            --bg-light: #4a627a;
+            --text-light: #ecf0f1;
+            --text-mid: #bdc3c7;
+            --accent-orange: #e67e22;
+            --accent-orange-dark: #d35400;
+            --accent-red: #e74c3c;
+        }
+        body {
+            background-color: var(--bg-dark);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Poppins', 'Noto Sans JP', sans-serif;
+            overflow: hidden;
+        }
+        /* --- Screens (Start, How-to-Play) --- */
+        .screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-light);
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+            transition: opacity 0.3s ease;
+        }
+        .screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .screen h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 3px 3px 10px rgba(0,0,0,0.7);
+        }
+        .screen h2 {
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            color: var(--accent-orange);
+        }
+        .start-info {
+            font-size: 1.2em;
+            margin-bottom: 30px;
+        }
+        #start-high-score {
+            font-weight: bold;
+            color: var(--accent-orange);
+            font-size: 1.5em;
+            vertical-align: middle;
+        }
+        @keyframes new-high-score-flash {
+            0%, 100% { transform: scale(1); color: var(--accent-orange); }
+            50% { transform: scale(1.1); color: #f1c40f; }
+        }
+        #start-high-score.new-high-score {
+            animation: new-high-score-flash 1.5s ease-in-out;
+        }
+        .menu-btn {
+            font-size: 1.2em;
+            padding: 10px 30px;
+            border-radius: 8px;
+            border: none;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            margin: 5px;
+            min-width: 180px;
+        }
+        #start-btn { background-color: var(--accent-orange); }
+        #start-btn:hover { background-color: var(--accent-orange-dark); }
+        #how-to-play-btn { background-color: var(--bg-light); }
+        #how-to-play-btn:hover { background-color: #5f7a95; }
+
+        .how-to-play-content {
+            max-width: 600px;
+            text-align: left;
+            background: var(--bg-mid);
+            padding: 20px 30px;
+            border-radius: 10px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .how-to-play-content p { line-height: 1.6; }
+        .how-to-play-content .controls-grid { display: grid; grid-template-columns: 100px 1fr; gap: 10px; margin-top: 15px; }
+        .how-to-play-content .controls-grid span { font-weight: bold; color: var(--accent-orange); }
+        .how-to-play-content button { background-color: var(--accent-orange); display: block; margin: 20px auto 0 auto; }
+        .how-to-play-content button:hover { background-color: var(--accent-orange-dark); }
+
+        /* --- Game Layout --- */
+        #game-wrapper {
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            visibility: hidden; /* Initially hidden */
+        }
+        #game-top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 15px;
+            background-color: var(--bg-mid);
+            color: var(--text-light);
+            border-radius: 10px 10px 0 0;
+            border: 2px solid var(--text-light);
+            border-bottom: none;
+        }
+        #time-display { font-size: 1.5em; font-weight: bold; }
+        #time-display.countdown { color: var(--accent-red); animation: time-pulse 1s infinite; }
+        @keyframes time-pulse { 50% { transform: scale(1.1); } }
+        #game-pause-btn {
+            font-size: 1.5em;
+            background: none;
+            border: none;
+            color: var(--text-light);
+            cursor: pointer;
+            padding: 0 10px;
+        }
+        #game-container {
+            display: flex;
+            border: 2px solid var(--text-light);
+            border-top: none;
+            background-color: var(--bg-mid);
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            border-radius: 0 0 10px 10px;
+            overflow: hidden;
+        }
+        canvas#game-board {
+            border-right: 2px solid var(--text-light);
+            background-color: #000; /* Set a default bg for the canvas area */
+        }
+        #info-panel {
+            width: 200px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+        }
+        .info-box {
+background-color: var(--bg-mid);
+            border: 1px solid var(--bg-light);
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .info-box h3 {
+            margin: 0 0 5px 0;
+            font-size: 0.9em;
+            font-weight: 600;
+            color: var(--text-mid);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .info-box p {
+            margin: 0;
+            font-size: 1.6em;
+            font-weight: 700;
+            color: #ffffff;
+        }
+        #next-block-canvas {
+            width: 120px;
+            height: 120px;
+            background-color: var(--bg-mid);
+            border: 1px solid var(--bg-light);
+            border-radius: 8px;
+            align-self: center;
+        }
+
+        /* --- Mobile & Responsive --- */
+        @media (max-width: 768px) {
+            body {
+                height: auto;
+                padding-bottom: 100px;
+                align-items: flex-start; /* Align to top for better mobile fit */
+                padding-top: 10px;
+            }
+            .screen h1 { font-size: 2.5em; }
+            #game-wrapper {
+                width: 100%;
+                /* Scale down if content overflows viewport height */
+                transform-origin: top center;
+                 transform: scale(min(1, (100vh - 120px) / 700px)); /* 700px is approx game
+       height + top bar */
+                 margin-bottom: 10px; /* Space for mobile controls */
+             }
+             #game-container { flex-direction: column; width: 100%; border-radius: 0 0 10px
+       10px; }
+             canvas#game-board { width: 100%; height: auto; border-right: none; border-bottom:
+       2px solid var(--text-light); }
+             #info-panel { width: 100%; box-sizing: border-box; padding: 15px; }
+             #info-panel > div:first-child { display: flex; flex-flow: row wrap;
+       justify-content: center; gap: 10px; }
+             .info-box { flex: 1 1 100px; margin-bottom: 0; }
+             #next-block-container { margin-top: 15px; }
+             #next-block-canvas { width: 100px; height: 100px; margin: 0 auto; }
+         }
+
+         /* --- Mobile Controls --- */
+         #mobile-controls {
+             position: fixed;
+             bottom: 0;
+             left: 0;
+             width: 100%;
+             background-color: rgba(44, 62, 80, 0.8);
+             padding: 15px 10px;
+             box-sizing: border-box;
+             display: flex;
+             justify-content: space-between;
+             align-items: center;
+             z-index: 20;
+             visibility: hidden; /* Initially hidden */
+         }
+         .control-group { display: flex; gap: 10px; }
+         #mobile-controls button {
+             font-family: 'Montserrat', 'Noto Sans JP', sans-serif; /* Apply font to buttons */
+             width: 60px; height: 60px; font-size: 28px; font-weight: bold; color:
+       var(--text-light);
+             background-color: var(--bg-mid); border: 2px solid var(--bg-light); border-radius:
+       50%; /* Rounded */
+             cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent;
+             display: flex; justify-content: center; align-items: center;
+             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); /* Shadow */
+             transition: background-color 0.3s, transform 0.2s, box-shadow 0.3s; /* Transition
+       */
+         }
+         #mobile-controls button:active {
+             background-color: var(--bg-light);
+             transform: scale(0.95);
+             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3); /* Smaller shadow on active */
+         }
+         #mobile-controls button:hover {
+             transform: scale(1.05); /* Scale on hover */
+             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4); /* Larger shadow on hover */
+         }
+         @media (min-width: 769px) { #mobile-controls { display: none !important; } }
+
+         /* Time Warning Flash */
+         @keyframes time-warning-flash-anim {
+             0%, 100% { box-shadow: 0 0 0px rgba(255, 0, 0, 0); }
+             50% { box-shadow: 0 0 15px rgba(255, 0, 0, 0.8); }
+         }
+         .time-warning-flash {
+             animation: time-warning-flash-anim 0.5s infinite alternate;
+         }
+     </style>
+ </head>
+ <body>
+
+     <!-- Start Screen -->
+     <div id="start-screen" class="screen">
+         <h1>フルーツパズル</h1>
+         <div class="start-info">HIGH SCORE: <span id="start-high-score">0</span></div>
+         <div>
+             <button id="start-btn" class="menu-btn">START</button>
+             <button id="score-attack-btn" class="menu-btn">SCORE ATTACK</button>
+             <button id="how-to-play-btn" class="menu-btn">遊び方</button>
+         </div>
+     </div>
+
+     <!-- How-to-Play Screen -->
+     <div id="how-to-play-screen" class="screen hidden">
+         <div class="how-to-play-content">
+             <h2>遊び方</h2>
+             <p>
+       フルーツでできたブロックを操作して、同じフルーツを4つ以上つなげて消していくパズルゲームです。
+       </p>
+            <h3>操作方法 (キーボード)</h3>
+            <div class="controls-grid">
+                <span>← →</span> <div>ブロックを左・右に移動</div>
+                <span>↑ / Space</span> <div>ブロックを回転</div>
+                <span>↓</span> <div>ブロックを速く落とす</div>
+                <span>D</span> <div>ブロックを一気に落とす</div>
+                <span>P</span> <div>一時停止 / 再開</div>
+            </div>
+            <h3>操作方法 (タッチ)</h3>
+            <p>画面下のボタンで操作します。</p>
+            <h3>ルール</h3>
+            <p>・同じフルーツが上下左右に4つ以上そろうと消えます。<br>・連鎖して消すと高得点！
+       <br>・ステージごとに目標スコアがあり、達成するとステージクリアです。<br>
+       ・ブロックが一番上まで積み上がるか、制限時間がなくなるとゲームオーバーです。</p>
+            <button id="back-to-start-btn" class="menu-btn">戻る</button>
+        </div>
+    </div>
+
+    <!-- Game Content -->
+    <div id="game-wrapper">
+        <div id="game-top-bar">
+            <div id="time-display">TIME: 90</div>
+            <button id="game-pause-btn" title="Pause (P)">❚❚</button>
+        </div>
+        <div id="game-container">
+            <canvas id="game-board" width="300" height="600"></canvas>
+            <div id="info-panel">
+                <div>
+                    <div class="info-box">
+                        <h3>SCORE</h3>
+                        <p id="score">0</p>
+                    </div>
+                    <div class="info-box">
+                        <h3>GOAL</h3>
+                        <p id="goal">1000</p>
+                    </div>
+                    <div class="info-box">
+                        <h3>LEVEL</h3>
+                        <p id="level">1</p>
+                    </div>
+                    <div class="info-box">
+                        <h3>CLEARED</h3>
+                        <p id="cleared">0</p>
+                    </div>
+                </div>
+                <div id="next-block-container">
+                    <h3>NEXT</h3>
+                    <canvas id="next-block-canvas"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Controls -->
+    <div id="mobile-controls">
+        <div class="control-group">
+            <button id="btn-left">←</button>
+            <button id="btn-right">→</button>
+        </div>
+
+document.addEventListener('DOMContentLoaded', () => {
+    // --- DOM Elements ---
+    const canvas = document.getElementById('game-board');
+    const context = canvas.getContext('2d');
+    const nextBlockCanvas = document.getElementById('next-block-canvas');
+    const nextBlockContext = nextBlockCanvas.getContext('2d');
+    const scoreElement = document.getElementById('score');
+    const goalElement = document.getElementById('goal');
+    const levelElement = document.getElementById('level');
+     const clearedElement = document.getElementById('cleared');
+
+     // Screens & Buttons
+     const startScreen = document.getElementById('start-screen');
+     const howToPlayScreen = document.getElementById('how-to-play-screen');
+
+document.addEventListener('DOMContentLoaded', () => {
+
+    <script src="game.js?v=5"></script>
+</body>
+</html>
