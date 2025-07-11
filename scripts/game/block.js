@@ -36,13 +36,22 @@ export class Block {
     this.rotationIndex = (this.rotationIndex + 1) % this.rotations.length;
     const newShape = this.rotations[this.rotationIndex];
 
-    // 回転後のフルーツグリッドを再生成
-    const newFruitGrid = newShape.map(row =>
-      row.map(cell => (cell ? this.getRandomFruit() : null))
-    );
+    // フルーツグリッドを回転させるヘルパー関数
+    const rotateFruitGrid = (grid) => {
+      const rows = grid.length;
+      const cols = grid[0].length;
+      const rotated = Array.from({ length: cols }, () => Array(rows).fill(null));
 
-    // TODO: ここで回転後のフルーツを引き継ぐ処理が必要
-    // 現状はランダムに再割り当てしているが、仕様に合わせて修正する
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          rotated[c][rows - 1 - r] = grid[r][c];
+        }
+      }
+      return rotated;
+    };
+
+    // 既存のフルーツグリッドを回転
+    const newFruitGrid = rotateFruitGrid(this.fruitGrid);
 
     this.shape = newShape;
     this.fruitGrid = newFruitGrid;
