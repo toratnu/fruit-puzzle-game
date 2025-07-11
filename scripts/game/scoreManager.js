@@ -65,6 +65,6 @@ export class ScoreManager {
     this.score = 0;
     this.level = 1;
     this.clearedLines = 0;
-    this.goal = 0; // モードによって設定
+    // this.goal = 0; // モードによって設定されるため、ここではリセットしない
   }
 }
