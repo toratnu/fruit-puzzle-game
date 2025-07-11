@@ -6,6 +6,7 @@ export class PanelUpdater {
     this.levelDisplay = document.getElementById('level-display');
     this.clearedDisplay = document.getElementById('cleared-display');
     this.highScoreDisplay = document.getElementById('high-score');
+    this.timeDisplay = document.getElementById('time-display');
     // NEXTブロックのCanvasは後で実装
     // フィーバーゲージは後で実装
   }
@@ -28,6 +29,10 @@ export class PanelUpdater {
 
   updateHighScore(highScore) {
     this.highScoreDisplay.textContent = highScore;
+  }
+
+  updateTime(time) {
+    this.timeDisplay.textContent = `TIME: ${time}`;
   }
 
   // 全てのUIを更新する（ゲーム開始時や状態変化時）

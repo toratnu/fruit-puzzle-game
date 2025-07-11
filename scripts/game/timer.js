@@ -1,54 +1,36 @@
-// scripts/game/timer.js
-
+// ゲームの時間を管理するクラス
 export class Timer {
-    constructor(panelUpdater, mode) {
-        this.panelUpdater = panelUpdater;
-        this.mode = mode;
-        this.initialTime = (mode === 'normal') ? 90 : 60; // ノーマル90秒、スコアアタック60秒
-        this.timeRemaining = this.initialTime;
-        this.timerInterval = null;
-        this.onTimeUp = null;
-    }
+  constructor(initialTime, onTimeUp) {
+    this.initialTime = initialTime;
+    this.currentTime = initialTime;
+    this.onTimeUp = onTimeUp; // 時間切れ時のコールバック
+    this.intervalId = null;
+  }
 
-    init() {
-        this.timeRemaining = this.initialTime;
-        this.panelUpdater.updateTime(this.timeRemaining);
+  start() {
+    if (this.intervalId) {
+      this.stop();
+    }
+    this.intervalId = setInterval(() => {
+      this.currentTime--;
+      if (this.currentTime <= 0) {
         this.stop();
-    }
+        this.onTimeUp();
+      }
+    }, 1000);
+  }
 
-    start(onTimeUpCallback) {
-        this.onTimeUp = onTimeUpCallback;
-        if (this.timerInterval) {
-            clearInterval(this.timerInterval);
-        }
-        this.timerInterval = setInterval(() => {
-            this.timeRemaining--;
-            this.panelUpdater.updateTime(this.timeRemaining);
-            if (this.timeRemaining <= 0) {
-                this.stop();
-                if (this.onTimeUp) {
-                    this.onTimeUp();
-                }
-            }
-        }, 1000);
-    }
+  stop() {
+    clearInterval(this.intervalId);
+    this.intervalId = null;
+  }
 
-    stop() {
-        if (this.timerInterval) {
-            clearInterval(this.timerInterval);
-            this.timerInterval = null;
-        }
-    }
+  reset() {
+    this.stop();
+    this.currentTime = this.initialTime;
+  }
 
-    pause() {
-        this.stop();
-    }
-
-    resume() {
-        this.start(this.onTimeUp);
-    }
-
-    getTimeRemaining() {
-        return this.timeRemaining;
-    }
+  getTime() {
+    return this.currentTime;
+  }
 }

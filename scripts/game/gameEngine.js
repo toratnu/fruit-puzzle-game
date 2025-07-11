@@ -5,6 +5,7 @@ import { isValidMove } from './collision.js';
 import { ScoreManager } from './scoreManager.js';
 import { DROP_INTERVAL, BLOCK_SIZE } from '../utils/constants.js';
 import { PanelUpdater } from '../ui/panelUpdater.js';
+import { Timer } from './timer.js';
 
 // ゲーム全体の進行と状態を管理するクラス
 export class GameEngine {
@@ -19,22 +20,44 @@ export class GameEngine {
     this.lastDropTime = 0;
     this.isGameOver = false;
 
+    // ゲームモードに応じた初期設定
+    let initialTime;
+    if (this.mode === 'normal') {
+      initialTime = 90; // ノーマルモードは90秒
+      this.scoreManager.goal = 1000; // 仮の目標スコア
+    } else if (this.mode === 'scoreAttack') {
+      initialTime = 60; // スコアアタックモードは60秒
+      this.scoreManager.level = 9; // スコアアタックはレベル9固定
+    }
+
+    this.timer = new Timer(initialTime, () => {
+      // 時間切れ時の処理
+      this.isGameOver = true;
+    });
+
     this.gameLoop = this.gameLoop.bind(this);
   }
 
   // ゲームを開始する
   start() {
     this.scoreManager.reset();
+    // ゲームモードに応じた初期レベル設定
+    if (this.mode === 'scoreAttack') {
+      this.scoreManager.level = 9;
+    }
     this.panelUpdater.updateHighScore(this.scoreManager.loadHighScore()); // ハイスコアを初期表示
     this.panelUpdater.updateAll(this.scoreManager);
+    this.timer.reset();
+    this.timer.start();
     this.spawnNewBlock();
     requestAnimationFrame(this.gameLoop);
   }
 
   // ゲームループ
   gameLoop(currentTime) {
-    if (this.isGameOver) {
+    if (this.isGameOver || this.timer.getTime() <= 0) {
       console.log("Game Over");
+      this.timer.stop(); // タイマーを停止
       document.getElementById('final-score').textContent = this.scoreManager.score;
       this.screenManager.showScreen('gameOver');
       return;
@@ -48,6 +71,7 @@ export class GameEngine {
 
     this.update();
     this.draw();
+    this.panelUpdater.updateTime(this.timer.getTime()); // 時間をUIに反映
 
     requestAnimationFrame(this.gameLoop);
   }
