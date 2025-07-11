@@ -126,6 +126,9 @@ export class GameEngine {
   handleLanding() {
     this.board.fixBlock(this.currentBlock);
     
+    // 固定後に一度重力処理を適用
+    this.matchChecker.applyGravity();
+
     // 消去処理と連鎖チェック
     let chain = 0;
     let clearedCount;
