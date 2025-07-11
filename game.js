@@ -390,7 +390,7 @@ document.addEventListener('DOMContentLoaded', () => {
         rotatePiece() {
             if (!state.currentPiece || state.currentPiece.type === 'O') return;
 
-            const { shape, fruits } = state.currentPiece;
+            const { shape, fruits, type, x, y } = state.currentPiece;
             const N = shape.length;
             const M = shape[0].length;
 
@@ -429,11 +429,24 @@ document.addEventListener('DOMContentLoaded', () => {
             const testPiece = { ...state.currentPiece, shape: newShape, fruits: newFruits };
 
             // Wall kick data (simplified for all pieces, could be more specific per piece type)
-            const kicks = [[0, 0], [-1, 0], [1, 0], [0, -1], [0, 1], [-2, 0], [2, 0], [0, -2], [0, 2]];
+            // Standard kicks for most pieces
+            let kicks = [[0, 0], [-1, 0], [1, 0], [0, -1], [0, 1], [-2, 0], [2, 0], [0, -2], [0, 2]];
+
+            // Specific kicks for 'I' tetromino (simplified SRS-like kicks)
+            if (type === 'I') {
+                // If horizontal (1x4) rotating to vertical (4x1)
+                if (N === 1 && M === 4) {
+                    kicks = [[0, 0], [-2, 0], [1, 0], [-2, 1], [1, -2]];
+                }
+                // If vertical (4x1) rotating to horizontal (1x4)
+                else if (N === 4 && M === 1) {
+                    kicks = [[0, 0], [2, 0], [-1, 0], [2, -1], [-1, 2]];
+                }
+            }
 
             for (const [kx, ky] of kicks) {
-                testPiece.x = state.currentPiece.x + kx;
-                testPiece.y = state.currentPiece.y + ky;
+                testPiece.x = x + kx; // Use original x, y for kick calculation
+                testPiece.y = y + ky;
                 if (!this.checkCollision(testPiece)) {
                     state.currentPiece = testPiece;
                     return;
@@ -453,7 +466,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!state.currentPiece || state.isProcessing) return;
             state.isProcessing = true;
 
-            const { shape, fruits, x, y } = state.currentPiece;
+            const { shape, fruits, type, x, y } = state.currentPiece;
             let fruitIndex = 0;
             for (let r = 0; r < shape.length; r++) {
                 for (let c = 0; c < shape[r].length; c++) {

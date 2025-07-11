@@ -1,0 +1,26 @@
+body {
+    font-family: sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #f0f0f0;
+}
+
+#game-container {
+    display: flex;
+    border: 2px solid #333;
+}
+
+#game-board {
+    border: 1px solid #ccc;
+    background-color: #fff;
+}
+
+#info-panel {
+    width: 200px;
+    padding: 10px;
+    border-left: 2px solid #333;
+}
