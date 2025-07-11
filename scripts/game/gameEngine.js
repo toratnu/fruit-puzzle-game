@@ -8,13 +8,13 @@ import { PanelUpdater } from '../ui/panelUpdater.js';
 
 // ゲーム全体の進行と状態を管理するクラス
 export class GameEngine {
-  constructor(canvas, screenManager, mode) {
+  constructor(canvas, screenManager, mode, panelUpdater, scoreManager) {
     this.screenManager = screenManager;
     this.mode = mode;
+    this.panelUpdater = panelUpdater;
+    this.scoreManager = scoreManager;
     this.board = new Board(canvas);
     this.matchChecker = new MatchChecker(this.board);
-    this.scoreManager = new ScoreManager();
-    this.panelUpdater = new PanelUpdater();
     this.currentBlock = null;
     this.lastDropTime = 0;
     this.isGameOver = false;
