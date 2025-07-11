@@ -2,7 +2,9 @@ import { Board } from './board.js';
 import { Block } from './block.js';
 import { MatchChecker } from './matchChecker.js';
 import { isValidMove } from './collision.js';
+import { ScoreManager } from './scoreManager.js';
 import { DROP_INTERVAL, BLOCK_SIZE } from '../utils/constants.js';
+import { PanelUpdater } from '../ui/panelUpdater.js';
 
 // ゲーム全体の進行と状態を管理するクラス
 export class GameEngine {
@@ -11,6 +13,8 @@ export class GameEngine {
     this.mode = mode;
     this.board = new Board(canvas);
     this.matchChecker = new MatchChecker(this.board);
+    this.scoreManager = new ScoreManager();
+    this.panelUpdater = new PanelUpdater();
     this.currentBlock = null;
     this.lastDropTime = 0;
     this.isGameOver = false;
@@ -20,6 +24,9 @@ export class GameEngine {
 
   // ゲームを開始する
   start() {
+    this.scoreManager.reset();
+    this.panelUpdater.updateHighScore(this.scoreManager.loadHighScore()); // ハイスコアを初期表示
+    this.panelUpdater.updateAll(this.scoreManager);
     this.spawnNewBlock();
     requestAnimationFrame(this.gameLoop);
   }
@@ -28,6 +35,7 @@ export class GameEngine {
   gameLoop(currentTime) {
     if (this.isGameOver) {
       console.log("Game Over");
+      document.getElementById('final-score').textContent = this.scoreManager.score;
       this.screenManager.showScreen('gameOver');
       return;
     }
@@ -139,7 +147,9 @@ export class GameEngine {
         if(clearedCount > 0){
             chain++;
             console.log(`${chain} CHAIN!`);
-            // TODO: スコア加算
+            this.scoreManager.addScore(clearedCount, chain);
+            this.scoreManager.updateClearedLines(clearedCount); // 消去したブロック数を渡す
+            this.panelUpdater.updateAll(this.scoreManager);
         }
     } while (clearedCount > 0);
 

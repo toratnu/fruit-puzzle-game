@@ -1,117 +1,67 @@
-// scripts/game/scoreManager.js
-
+// スコアとレベルを管理するクラス
 export class ScoreManager {
-    constructor(panelUpdater, mode) {
-        this.panelUpdater = panelUpdater;
-        this.mode = mode;
-        this.score = 0;
-        this.level = 1;
-        this.clearedBlocks = 0;
-        this.goalScore = 0;
-        this.stage = 1; // ノーマルモード用
+  constructor() {
+    this.score = 0;
+    this.level = 1;
+    this.clearedLines = 0; // 消去したライン数（ブロック数ではない）
+    this.goal = 0; // ノーマルモードの目標スコア
+    this.highScore = this.loadHighScore();
+  }
 
-        this.LEVEL_UP_THRESHOLD = 32; // 32個消すごとにレベルアップ
-        this.NORMAL_MODE_TIME_LIMIT = 90; // ノーマルモードの制限時間
-        this.SCORE_ATTACK_TIME_LIMIT = 60; // スコアアタックモードの制限時間
+  // スコアを加算する
+  addScore(clearedBlocks, chain) {
+    // 基本スコア = レベル * 10 * 消去数
+    let baseScore = this.level * 10 * clearedBlocks;
+
+    // 連鎖ボーナス = 基本スコア * 2^(連鎖数 - 1)
+    if (chain > 1) {
+      baseScore *= Math.pow(2, chain - 1);
     }
 
-    init() {
-        this.score = 0;
-        this.clearedBlocks = 0;
-        if (this.mode === 'normal') {
-            // ステージが1の場合は初期化、それ以外はステージを維持
-            if (this.stage === 1) {
-                this.level = 1;
-            }
-            this.goalScore = this.calculateGoalScore(this.stage);
-            this.panelUpdater.updateGoal(this.goalScore);
-            this.panelUpdater.updateTime(this.NORMAL_MODE_TIME_LIMIT);
-        } else { // scoreAttack
-            this.level = 9; // スコアアタックはレベル9固定
-            this.stage = 1; // スコアアタックはステージ1固定
-            this.goalScore = 0; // スコアアタックに目標スコアはない
-            this.panelUpdater.updateGoal('---'); // 表示を無効化
-            this.panelUpdater.updateTime(this.SCORE_ATTACK_TIME_LIMIT);
-        }
-        this.panelUpdater.updateScore(this.score);
-        this.panelUpdater.updateLevel(this.level);
-        this.panelUpdater.updateClearedBlocks(this.clearedBlocks);
-    }
+    this.score += baseScore;
+    this.updateHighScore();
+  }
 
-    addScore(points) {
-        this.score += points;
-        this.panelUpdater.updateScore(this.score);
+  // 消去したライン数を更新し、レベルアップをチェックする
+  updateClearedLines(lines) {
+    this.clearedLines += lines;
+    // 32個消去でレベルアップ（仕様書より）
+    if (this.clearedLines >= this.level * 32) {
+      this.levelUp();
     }
+  }
 
-    addClearedBlocks(count) {
-        this.clearedBlocks += count;
-        this.panelUpdater.updateClearedBlocks(this.clearedBlocks);
+  // レベルアップ処理
+  levelUp() {
+    this.level++;
+    console.log(`LEVEL UP! Current Level: ${this.level}`);
+    // TODO: レベルアップ時の演出と効果音
+  }
+
+  // ハイスコアを更新する
+  updateHighScore() {
+    if (this.score > this.highScore) {
+      this.highScore = this.score;
+      this.saveHighScore();
     }
+  }
 
-    calculateScore(numCleared, chainCount) {
-        let baseScore = this.level * 10 * numCleared;
-        let quantityBonus = 0;
-        if (numCleared >= 5) {
-            quantityBonus = (numCleared - 4) * 50; // 例: 5個で50, 6個で100
-        }
-        let chainBonus = 0;
-        if (chainCount > 1) {
-            chainBonus = baseScore * (2 ** (chainCount - 1));
-        }
-        return baseScore + quantityBonus + chainBonus;
-    }
+  // ハイスコアをLocalStorageから読み込む
+  loadHighScore() {
+    const savedHighScore = localStorage.getItem('fruitPuzzleHighScore');
+    return savedHighScore ? parseInt(savedHighScore, 10) : 0;
+  }
 
-    checkLevelUp() {
-        const oldLevel = this.level;
-        this.level = Math.floor(this.clearedBlocks / this.LEVEL_UP_THRESHOLD) + 1;
-        if (this.mode === 'scoreAttack') {
-            this.level = 9; // スコアアタックはレベル9固定
-        }
+  // ハイスコアをLocalStorageに保存する
+  saveHighScore() {
+    localStorage.setItem('fruitPuzzleHighScore', this.highScore);
+  }
 
-        if (this.level > oldLevel) {
-            this.panelUpdater.updateLevel(this.level);
-            return true;
-        }
-        return false;
-    }
-
-    getDropInterval() {
-        // レベルに応じて落下速度を調整 (ms)
-        // レベル1: 1000ms, レベル9: 200ms (例)
-        return Math.max(100, 1000 - (this.level - 1) * 100);
-    }
-
-    calculateGoalScore(stage) {
-        // ステージごとの目標スコアを計算
-        return stage * 1000; // 例: ステージ1で1000点, ステージ2で2000点
-    }
-
-    checkGoalAchieved() {
-        return this.score >= this.goalScore;
-    }
-
-    getScore() {
-        return this.score;
-    }
-
-    getLevel() {
-        return this.level;
-    }
-
-    getStage() {
-        return this.stage;
-    }
-
-    incrementStage() {
-        this.stage++;
-        this.score = 0; // スコアをリセット
-        this.clearedBlocks = 0; // クリアブロック数をリセット
-        // レベルは維持するか、ステージに応じてリセットするかは仕様による
-        // 今回はレベルは維持する
-        this.goalScore = this.calculateGoalScore(this.stage);
-        this.panelUpdater.updateGoal(this.goalScore);
-        this.panelUpdater.updateScore(this.score);
-        this.panelUpdater.updateClearedBlocks(this.clearedBlocks);
-        // タイマーはGameEngineでリセットされる
-    }
+  // ゲーム開始時にスコアとレベルをリセットする
+  reset() {
+    this.score = 0;
+    this.level = 1;
+    this.clearedLines = 0;
+    this.goal = 0; // モードによって設定
+  }
 }
