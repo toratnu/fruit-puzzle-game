@@ -28,7 +28,7 @@ export class GameEngine {
   gameLoop(currentTime) {
     if (this.isGameOver) {
       console.log("Game Over");
-      // TODO: ゲームオーバー画面の表示
+      this.screenManager.showScreen('gameOver');
       return;
     }
 
