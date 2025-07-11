@@ -1,48 +1,32 @@
-// scripts/ui/screenManager.js
-
+// 画面表示を管理するクラス
 export class ScreenManager {
-    constructor(startScreen, howToPlayScreen, gameScreen, gameOverScreen) {
-        this.startScreen = startScreen;
-        this.howToPlayScreen = howToPlayScreen;
-        this.gameScreen = gameScreen;
-        this.gameOverScreen = gameOverScreen;
+  constructor() {
+    this.screens = {
+      start: document.getElementById('start-screen'),
+      howToPlay: document.getElementById('how-to-play-screen'),
+      game: document.getElementById('game-screen'),
+      gameOver: document.getElementById('game-over-screen'),
+    };
+    this.currentScreen = null;
+  }
 
-        this.screens = [
-            this.startScreen,
-            this.howToPlayScreen,
-            this.gameScreen,
-            this.gameOverScreen
-        ];
+  // 指定された画面を表示し、他の画面を非表示にする
+  showScreen(screenName) {
+    for (const key in this.screens) {
+      if (this.screens[key]) {
+        this.screens[key].classList.add('hidden');
+        this.screens[key].classList.remove('active');
+      }
     }
+    if (this.screens[screenName]) {
+      this.screens[screenName].classList.remove('hidden');
+      this.screens[screenName].classList.add('active');
+      this.currentScreen = screenName;
+    }
+  }
 
-    hideAllScreens() {
-        this.screens.forEach(screen => {
-            if (screen) {
-                screen.classList.remove('active');
-            }
-        });
-    }
-
-    showScreen(screenElement) {
-        this.hideAllScreens();
-        if (screenElement) {
-            screenElement.classList.add('active');
-        }
-    }
-
-    showStartScreen() {
-        this.showScreen(this.startScreen);
-    }
-
-    showHowToPlayScreen() {
-        this.showScreen(this.howToPlayScreen);
-    }
-
-    showGameScreen() {
-        this.showScreen(this.gameScreen);
-    }
-
-    showGameOverScreen() {
-        this.showScreen(this.gameOverScreen);
-    }
+  // 初期画面を表示
+  init() {
+    this.showScreen('start');
+  }
 }

@@ -9,6 +9,29 @@ body {
     background-color: #f0f0f0;
 }
 
+/* 画面切り替え用スタイル */
+.screen {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.9);
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+
+.screen.active {
+    display: flex;
+}
+
+.screen.hidden {
+    display: none;
+}
+
 #game-container {
     display: flex;
     border: 2px solid #333;
@@ -23,4 +46,49 @@ body {
     width: 200px;
     padding: 10px;
     border-left: 2px solid #333;
+}
+
+/* ボタンの基本スタイル */
+button {
+    padding: 10px 20px;
+    margin: 10px;
+    font-size: 1.2em;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    background-color: #4CAF50;
+    color: white;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+/* NEXTブロック表示エリア */
+#next-blocks {
+    margin-top: 20px;
+    border-top: 1px solid #ccc;
+    padding-top: 10px;
+}
+
+#next1-canvas, #next2-canvas {
+    border: 1px solid #eee;
+    background-color: #f9f9f9;
+    margin-bottom: 10px;
+}
+
+/* フィーバーゲージ */
+#fever-gauge-container {
+    width: 100%;
+    height: 20px;
+    background-color: #eee;
+    border: 1px solid #ccc;
+    margin-top: 20px;
+}
+
+#fever-gauge-fill {
+    height: 100%;
+    width: 0%;
+    background-color: #FFD700; /* Gold */
+    transition: width 0.1s linear;
 }

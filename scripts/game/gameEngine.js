@@ -6,7 +6,9 @@ import { DROP_INTERVAL, BLOCK_SIZE } from '../utils/constants.js';
 
 // ゲーム全体の進行と状態を管理するクラス
 export class GameEngine {
-  constructor(canvas) {
+  constructor(canvas, screenManager, mode) {
+    this.screenManager = screenManager;
+    this.mode = mode;
     this.board = new Board(canvas);
     this.matchChecker = new MatchChecker(this.board);
     this.currentBlock = null;

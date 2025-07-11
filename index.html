@@ -8,12 +8,56 @@
 </head>
 <body>
     <h1>フルーツパズル</h1>
-    <div id="game-container">
-        <canvas id="game-board"></canvas>
-        <div id="info-panel">
-            <!-- スコアなどの情報は第2段階で実装 -->
+
+    <!-- スタート画面 -->
+    <div id="start-screen" class="screen active">
+        <h2>フルーツパズル</h2>
+        <button id="start-button">START (ノーマルモード)</button>
+        <button id="score-attack-button">SCORE ATTACK</button>
+        <button id="how-to-play-button">遊び方</button>
+        <p>ハイスコア: <span id="high-score">0</span></p>
+    </div>
+
+    <!-- 遊び方画面 -->
+    <div id="how-to-play-screen" class="screen hidden">
+        <h2>遊び方</h2>
+        <p>ゲームの操作方法とルールをここに表示します。</p>
+        <button id="back-to-title-button">戻る</button>
+    </div>
+
+    <!-- ゲーム画面 -->
+    <div id="game-screen" class="screen hidden">
+        <div id="game-top-bar">
+            <span id="time-display">TIME: 90</span>
+            <button id="pause-button">一時停止</button>
+        </div>
+        <div id="game-container">
+            <canvas id="game-board"></canvas>
+            <div id="info-panel">
+                <p>SCORE: <span id="score-display">0</span></p>
+                <p>GOAL: <span id="goal-display">0</span></p>
+                <p>LEVEL: <span id="level-display">1</span></p>
+                <p>CLEARED: <span id="cleared-display">0</span></p>
+                <div id="next-blocks">
+                    <p>NEXT 1:</p>
+                    <canvas id="next1-canvas" width="120" height="90"></canvas>
+                    <p>NEXT 2:</p>
+                    <canvas id="next2-canvas" width="120" height="90"></canvas>
+                </div>
+                <div id="fever-gauge-container">
+                    <div id="fever-gauge-fill"></div>
+                </div>
+            </div>
         </div>
     </div>
+
+    <!-- ゲームオーバー画面 -->
+    <div id="game-over-screen" class="screen hidden">
+        <h2>GAME OVER</h2>
+        <p>最終スコア: <span id="final-score">0</span></p>
+        <button id="return-to-title-from-gameover">Return to Title</button>
+    </div>
+
     <script type="module" src="scripts/main.js"></script>
 </body>
 </html>
