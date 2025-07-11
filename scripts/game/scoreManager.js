@@ -49,11 +49,14 @@ export class ScoreManager {
   // ハイスコアをLocalStorageから読み込む
   loadHighScore() {
     const savedHighScore = localStorage.getItem('fruitPuzzleHighScore');
-    return savedHighScore ? parseInt(savedHighScore, 10) : 0;
+    const highScore = savedHighScore ? parseInt(savedHighScore, 10) : 0;
+    console.log('Loaded High Score:', highScore);
+    return highScore;
   }
 
   // ハイスコアをLocalStorageに保存する
   saveHighScore() {
+    console.log('Saving High Score:', this.highScore);
     localStorage.setItem('fruitPuzzleHighScore', this.highScore);
   }
 
