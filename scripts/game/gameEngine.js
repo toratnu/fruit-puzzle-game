@@ -2,7 +2,7 @@ import { Board } from './board.js';
 import { Block } from './block.js';
 import { MatchChecker } from './matchChecker.js';
 import { isValidMove } from './collision.js';
-import { DROP_INTERVAL } from '../utils/constants.js';
+import { DROP_INTERVAL, BLOCK_SIZE } from '../utils/constants.js';
 
 // ゲーム全体の進行と状態を管理するクラス
 export class GameEngine {
@@ -66,15 +66,14 @@ export class GameEngine {
   // 操作中のブロックを描画
   drawBlock(block) {
     const ctx = this.board.ctx;
-    block.shape.forEach((row, y) => {
-      row.forEach((cell, x) => {
-        if (cell) {
-          // TODO: フルーツ画像を描画
-          ctx.fillStyle = 'red'; // 仮の色
-          ctx.fillRect(
-            (block.x + x) * 30, // BLOCK_SIZE
-            (block.y + y) * 30, // BLOCK_SIZE
-            30, 30
+    block.fruitGrid.forEach((row, y) => {
+      row.forEach((fruitType, x) => {
+        if (fruitType && this.board.fruitImages[fruitType]) {
+          ctx.drawImage(
+            this.board.fruitImages[fruitType],
+            (block.x + x) * BLOCK_SIZE,
+            (block.y + y) * BLOCK_SIZE,
+            BLOCK_SIZE, BLOCK_SIZE
           );
         }
       });

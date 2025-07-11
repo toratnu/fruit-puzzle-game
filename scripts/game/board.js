@@ -1,4 +1,5 @@
-import { BOARD_WIDTH, BOARD_HEIGHT, BLOCK_SIZE } from '../utils/constants.js';
+import { BOARD_WIDTH, BOARD_HEIGHT, BLOCK_SIZE, FRUIT_TYPES } from '../utils/constants.js';
+import { loadImage } from '../utils/helper.js';
 
 // ゲームボードを管理するクラス
 export class Board {
@@ -10,6 +11,19 @@ export class Board {
     this.canvas.width = this.width;
     this.canvas.height = this.height;
     this.grid = this.createEmptyGrid();
+    this.fruitImages = {}; // フルーツ画像を格納するオブジェクト
+    this.loadFruitImages();
+  }
+
+  // フルーツ画像を事前に読み込む
+  async loadFruitImages() {
+    for (const fruitType of FRUIT_TYPES) {
+      try {
+        this.fruitImages[fruitType] = await loadImage(`assets/images/fruits/${fruitType}.png`);
+      } catch (error) {
+        console.error(`Failed to load image for ${fruitType}:`, error);
+      }
+    }
   }
 
   // 空のグリッドを生成する
@@ -43,10 +57,15 @@ export class Board {
   drawBlocks() {
     for (let y = 0; y < BOARD_HEIGHT; y++) {
       for (let x = 0; x < BOARD_WIDTH; x++) {
-        if (this.grid[y][x]) {
-          // TODO: フルーツ画像を描画する処理に置き換える
-          this.ctx.fillStyle = 'gray'; // 仮の色
-          this.ctx.fillRect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
+        const fruitType = this.grid[y][x];
+        if (fruitType && this.fruitImages[fruitType]) {
+          this.ctx.drawImage(
+            this.fruitImages[fruitType],
+            x * BLOCK_SIZE,
+            y * BLOCK_SIZE,
+            BLOCK_SIZE,
+            BLOCK_SIZE
+          );
         }
       }
     }
